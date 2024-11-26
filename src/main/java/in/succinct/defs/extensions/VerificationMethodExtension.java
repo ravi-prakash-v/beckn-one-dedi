@@ -1,10 +1,12 @@
 package in.succinct.defs.extensions;
 
 import com.venky.core.util.ObjectUtil;
+import com.venky.swf.db.Database;
 import com.venky.swf.db.extensions.ModelOperationExtension;
 import in.succinct.defs.db.model.did.subject.Subject;
 import in.succinct.defs.db.model.did.subject.VerificationMethod;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.PublicKeyType;
+import org.apache.lucene.index.DocIDMerger.Sub;
 
 import java.util.UUID;
 
@@ -22,7 +24,12 @@ public class VerificationMethodExtension extends ModelOperationExtension<Verific
         Subject controller = instance.getController();
 
         if (ObjectUtil.isVoid(instance.getDid())){
-            instance.setDid(String.format("%s#%s".formatted(controller.getDid(),instance.getName())));
+            instance.setDid(String.format("%s/verification_methods/%s".formatted(controller.getDid(),instance.getName())));
+            
+            VerificationMethod persisted = Database.getTable(VerificationMethod.class).getRefreshed(instance);
+            instance.getRawRecord().load(persisted.getRawRecord());
+            instance.getRawRecord().setNewRecord(persisted.getRawRecord().isNewRecord());
+            
         }
         
         VerificationMethod.PublicKeyType keyType = PublicKeyType.valueOf(instance.getType());
@@ -34,7 +41,26 @@ public class VerificationMethodExtension extends ModelOperationExtension<Verific
         if (!instance.getRawRecord().isNewRecord() && instance.isDirty()){
             boolean beingVerified =  instance.getReflector().getJdbcTypeHelper().getTypeRef(boolean.class).getTypeConverter().valueOf(instance.getTxnProperty("being.verified"));
             if (instance.isVerified() &&  !beingVerified){
-                throw new RuntimeException("Cannot change verified methods once  have been validated");
+                if (instance.getRawRecord().isFieldDirty("VERIFIED")){
+                    switch (keyType){
+                        case Email,Phone -> {
+                            throw new RuntimeException("To mark verified, you need to call verify api with the OTP sent to your %s".formatted(keyType));
+                        }
+                        case Dns -> {
+                            throw new RuntimeException("To mark verified, you need to call verify api after ensuring TXT record is created for %s = %s".formatted(instance.getPublicKey(),instance.getChallenge()));
+                        }
+                        case X25519 -> {
+                            throw new RuntimeException("To mark verified, you need to decrypt the challenge %s and post it using verify api".formatted(instance.getChallenge()));
+                        }
+                        case Ed25519 -> {
+                            throw new RuntimeException("To mark verified, you need to sign the challenge %s and post it using verify api".formatted(instance.getChallenge()));
+                        }
+                        
+                    }
+                    
+                }else {
+                    throw new RuntimeException("Cannot change verified methods once  have been validated");
+                }
             }
         }
         
@@ -46,5 +72,23 @@ public class VerificationMethodExtension extends ModelOperationExtension<Verific
         super.beforeCreate(instance);
         instance.challenge(false);
         
+    }
+    
+    @Override
+    protected void afterSave(VerificationMethod instance) {
+        super.afterSave(instance);
+        incrementModCount(instance);
+    }
+    
+    private void incrementModCount(VerificationMethod instance){
+        Subject controller = instance.getController();
+        controller.getModCount().increment();
+        controller.save();
+    }
+    
+    @Override
+    protected void afterDestroy(VerificationMethod instance) {
+        super.afterDestroy(instance);
+        incrementModCount(instance);
     }
 }

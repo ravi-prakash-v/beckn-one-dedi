@@ -1,5 +1,6 @@
 package in.succinct.defs.db.model.did.subject;
 
+import com.venky.core.util.Bucket;
 import com.venky.swf.db.annotations.column.IS_NULLABLE;
 import com.venky.swf.db.annotations.column.relationship.CONNECTED_VIA;
 import com.venky.swf.db.annotations.column.ui.HIDDEN;
@@ -28,7 +29,8 @@ public interface Subject extends Model , Did {
     @HIDDEN
     List<Subject> getControlledSubjects();
     
-    
+    public Bucket getModCount();
+    public void setModCount(Bucket modCount);
     
     
 }

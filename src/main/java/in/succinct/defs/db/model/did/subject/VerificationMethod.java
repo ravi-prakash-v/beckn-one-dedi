@@ -4,6 +4,7 @@ import com.venky.core.security.Crypt;
 import com.venky.swf.db.annotations.column.COLUMN_DEF;
 import com.venky.swf.db.annotations.column.defaulting.StandardDefault;
 import com.venky.swf.db.annotations.column.validations.Enumeration;
+import com.venky.swf.db.model.CryptoKey;
 import com.venky.swf.db.model.Model;
 import in.succinct.defs.db.model.did.identifier.Did;
 import in.succinct.defs.util.KeyManager;
@@ -27,9 +28,17 @@ public interface VerificationMethod extends Model, Did {
     
     
     
-    @Enumeration("Authentication,Assertion,KeyAgreement,CapabilityInvocation,CapabilityDelegation")
+    @Enumeration(enumClass = "in.succinct.defs.db.model.did.subject.VerificationMethod$Purpose")
     String getPurpose();
     void setPurpose(String purpose);
+    
+    enum Purpose {
+        Authentication,
+        Assertion,
+        KeyAgreement,
+        CapabilityInvocation,
+        CapabilityDelegation,
+    }
     
     @Enumeration(enumClass = "in.succinct.defs.db.model.did.subject.VerificationMethod$PublicKeyType")
     String getType();
@@ -97,17 +106,24 @@ public interface VerificationMethod extends Model, Did {
             }
             
             public String encrypt(String challenge, String publicKey){
+                    SecretKey symKey = getSecretKey(KeyManager.getInstance().getLatestKey(CryptoKey.PURPOSE_ENCRYPTION).getPrivateKey(),publicKey);
+                    return Crypt.getInstance().encrypt(challenge, "AES", symKey);
+            }
+            private SecretKey getSecretKey(String pv, String pb){
                 try {
                     KeyAgreement agreement = KeyAgreement.getInstance(algo());
-                    PrivateKey privateKey = Crypt.getInstance().getPrivateKey(algo(), KeyManager.getInstance().getLatestKey(algo()).getPrivateKey());
+                    PrivateKey privateKey = Crypt.getInstance().getPrivateKey(algo(), pv);
                     
                     agreement.init(privateKey);
-                    agreement.doPhase(Crypt.getInstance().getPublicKey(algo(), publicKey), true);
-                    SecretKey symKey = agreement.generateSecret("TlsPremasterSecret");
-                    return Crypt.getInstance().encrypt(challenge, "AES", symKey);
+                    agreement.doPhase(Crypt.getInstance().getPublicKey(algo(), pb), true);
+                    return agreement.generateSecret("TlsPremasterSecret");
                 }catch (Exception ex){
                     throw new RuntimeException(ex);
                 }
+            }
+            public String decrypt(String challenge, String publicKey){
+                SecretKey symKey = getSecretKey(KeyManager.getInstance().getLatestKey(CryptoKey.PURPOSE_ENCRYPTION).getPrivateKey(),publicKey);
+                return Crypt.getInstance().decrypt(challenge, "AES", symKey);
             }
         },
         Phone {
@@ -153,9 +169,12 @@ public interface VerificationMethod extends Model, Did {
         }
      
         public String encrypt(String payload, String publicKey){
-            
             return payload;
         }
+        public String decrypt(String payload, String publicKey){
+            return payload;
+        }
+        
     }
     
     

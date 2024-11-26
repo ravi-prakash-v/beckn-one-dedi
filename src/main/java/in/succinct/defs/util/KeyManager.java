@@ -2,6 +2,7 @@ package in.succinct.defs.util;
 
 import com.venky.core.date.DateUtils;
 import com.venky.core.security.Crypt;
+import com.venky.swf.db.Database;
 import com.venky.swf.db.model.CryptoKey;
 import com.venky.swf.db.model.reflection.ModelReflector;
 import com.venky.swf.routing.Config;
@@ -9,6 +10,11 @@ import com.venky.swf.sql.Expression;
 import com.venky.swf.sql.Operator;
 import com.venky.swf.sql.Select;
 import in.succinct.beckn.Request;
+import in.succinct.defs.db.model.did.subject.Subject;
+import in.succinct.defs.db.model.did.subject.VerificationMethod;
+import in.succinct.defs.db.model.did.subject.VerificationMethod.PublicKeyType;
+import in.succinct.defs.db.model.did.subject.VerificationMethod.Purpose;
+import org.apache.lucene.index.DocIDMerger.Sub;
 
 import java.security.KeyPair;
 import java.time.Duration;
@@ -61,6 +67,26 @@ public class KeyManager {
             encryptionKey.setPublicKey(Crypt.getInstance().getBase64Encoded(pair.getPublic()));
             encryptionKey.save();
         }
+        
+        Subject subject  = Database.getTable(Subject.class).newRecord();
+        subject.setName(Config.instance().getHostName());
+        subject.save();
+        
+        VerificationMethod verificationMethod = Database.getTable(VerificationMethod.class).newRecord();
+        verificationMethod.setPurpose(Purpose.KeyAgreement.name());
+        verificationMethod.setType(PublicKeyType.X25519.name());
+        verificationMethod.setPublicKey(encryptionKey.getPublicKey());
+        verificationMethod.setName(encryptionKey.getAlias());
+        verificationMethod.setControllerId(subject.getId());
+        verificationMethod.save();
+        
+        if (!verificationMethod.isVerified()) {
+            String resolved = PublicKeyType.X25519.decrypt(verificationMethod.getChallenge(), verificationMethod.getPublicKey());
+            verificationMethod.verify(resolved);
+        }
+        
+        
+        
     }
     public CryptoKey getLatestKey(String purpose){
         List<CryptoKey> latest = new Select().from(CryptoKey.class).
