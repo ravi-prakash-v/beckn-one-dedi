@@ -38,6 +38,13 @@ import java.util.Map;
 
 public abstract class AbstractDirectoryController<M extends Model & Did> extends ModelController<M> {
     
+    @Override
+    @RequireLogin(false)
+    public View erd() {
+        return super.erd();
+    }
+    
+    
     public static Path ensureDefaultHeaders(Path path){
         path.getHeaders().put("Content-Type","application/json");
         return path;
