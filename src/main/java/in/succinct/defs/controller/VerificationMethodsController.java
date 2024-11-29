@@ -35,7 +35,7 @@ public class VerificationMethodsController extends AbstractDirectoryController<V
         try {
             PublicKeyType keyType = PublicKeyType.valueOf(verificationMethod.getType());
             if (keyType != PublicKeyType.Dns) {
-                return StringUtil.read(getPath().getRequest().getInputStream());
+                return StringUtil.read(getPath().getInputStream());
             }else {
                 /*
                 String hostName = verificationMethod.getName();

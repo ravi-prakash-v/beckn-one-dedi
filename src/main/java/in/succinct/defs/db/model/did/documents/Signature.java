@@ -1,9 +1,10 @@
 package in.succinct.defs.db.model.did.documents;
 
 import com.venky.swf.db.model.Model;
+import in.succinct.defs.db.model.did.identifier.Did;
 import in.succinct.defs.db.model.did.subject.VerificationMethod;
 
-public interface Signature extends Model {
+public interface Signature extends Model , Did {
     Long getDocumentId();
     void setDocumentId(Long id);
     Document getDocument();

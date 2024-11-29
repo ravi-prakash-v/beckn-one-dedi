@@ -2,8 +2,9 @@ package in.succinct.defs.db.model.did.subject;
 
 import com.venky.swf.db.model.Model;
 import in.succinct.defs.db.model.did.documents.Document;
+import in.succinct.defs.db.model.did.identifier.Did;
 
-public interface Service extends Model {
+public interface Service extends Model , Did {
     Long getSubjectId();
     void setSubjectId(Long id);
     Subject getSubject();

@@ -10,13 +10,17 @@ public class ServiceExtension extends ModelOperationExtension<Service> {
     }
     
     @Override
-    protected void afterSave(Service instance) {
-        super.afterSave(instance);
+    protected void beforeSave(Service instance) {
+        if (!instance.isDirty()){
+            return;
+        }
+        
+        super.beforeSave(instance);
         incrementModCount(instance);
     }
     @Override
-    protected void afterDestroy(Service instance) {
-        super.afterDestroy(instance);
+    protected void beforeDestroy(Service instance) {
+        super.beforeDestroy(instance);
         incrementModCount(instance);
     }
     private void incrementModCount(Service instance){

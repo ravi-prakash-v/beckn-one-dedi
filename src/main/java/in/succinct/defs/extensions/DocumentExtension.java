@@ -15,13 +15,17 @@ public class DocumentExtension extends ModelOperationExtension<Document> {
     }
     
     @Override
-    protected void afterSave(Document instance) {
-        super.afterSave(instance);
+    protected void beforeSave(Document instance) {
+        if (!instance.isDirty()){
+            return;
+        }
+        
+        super.beforeSave(instance);
         incrementModCount(instance);
     }
     @Override
-    protected void afterDestroy(Document instance) {
-        super.afterDestroy(instance);
+    protected void beforeDestroy(Document instance) {
+        super.beforeDestroy(instance);
         incrementModCount(instance);
     }
     private void incrementModCount(Document instance){

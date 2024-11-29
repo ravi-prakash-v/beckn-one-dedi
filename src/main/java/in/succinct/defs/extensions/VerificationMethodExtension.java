@@ -27,9 +27,12 @@ public class VerificationMethodExtension extends ModelOperationExtension<Verific
             instance.setDid(String.format("%s/verification_methods/%s".formatted(controller.getDid(),instance.getName())));
             
             VerificationMethod persisted = Database.getTable(VerificationMethod.class).getRefreshed(instance);
-            instance.getRawRecord().load(persisted.getRawRecord());
-            instance.getRawRecord().setNewRecord(persisted.getRawRecord().isNewRecord());
-            
+            if (!persisted.getRawRecord().isNewRecord()) {
+                instance.getRawRecord().load(persisted.getRawRecord());
+            }
+        }
+        if (instance.isVerified() == null){
+            instance.setVerified(false);
         }
         
         VerificationMethod.PublicKeyType keyType = PublicKeyType.valueOf(instance.getType());
@@ -75,8 +78,11 @@ public class VerificationMethodExtension extends ModelOperationExtension<Verific
     }
     
     @Override
-    protected void afterSave(VerificationMethod instance) {
-        super.afterSave(instance);
+    protected void beforeUpdate(VerificationMethod instance) {
+        if (!instance.isDirty()){
+            return;
+        }
+        super.beforeUpdate(instance);
         incrementModCount(instance);
     }
     
@@ -87,8 +93,8 @@ public class VerificationMethodExtension extends ModelOperationExtension<Verific
     }
     
     @Override
-    protected void afterDestroy(VerificationMethod instance) {
-        super.afterDestroy(instance);
+    protected void beforeDestroy(VerificationMethod instance) {
+        super.beforeDestroy(instance);
         incrementModCount(instance);
     }
 }

@@ -76,7 +76,7 @@ public class KeyManager {
         verificationMethod.setPurpose(Purpose.KeyAgreement.name());
         verificationMethod.setType(PublicKeyType.X25519.name());
         verificationMethod.setPublicKey(encryptionKey.getPublicKey());
-        verificationMethod.setName(encryptionKey.getAlias());
+        verificationMethod.setName("%s.%s".formatted(key.getAlias(),verificationMethod.getType()));
         verificationMethod.setControllerId(subject.getId());
         verificationMethod.save();
         
@@ -85,6 +85,20 @@ public class KeyManager {
             verificationMethod.verify(resolved);
         }
         
+        verificationMethod = Database.getTable(VerificationMethod.class).newRecord();
+        verificationMethod.setPurpose(Purpose.Assertion.name());
+        verificationMethod.setType(PublicKeyType.Ed25519.name());
+        verificationMethod.setPublicKey(key.getPublicKey());
+        verificationMethod.setName("%s.%s".formatted(key.getAlias(),verificationMethod.getType()));
+        verificationMethod.setControllerId(subject.getId());
+        verificationMethod.save();
+        
+        if (!verificationMethod.isVerified()) {
+            String resolved =
+                    Crypt.getInstance().generateSignature(verificationMethod.getChallenge(),PublicKeyType.Ed25519.algo(),
+                        Crypt.getInstance().getPrivateKey(PublicKeyType.Ed25519.algo(), KeyManager.getInstance().getLatestKey(CryptoKey.PURPOSE_SIGNING).getPrivateKey()));
+            verificationMethod.verify(resolved);
+        }
         
         
     }

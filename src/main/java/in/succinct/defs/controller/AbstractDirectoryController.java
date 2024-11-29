@@ -51,6 +51,8 @@ public abstract class AbstractDirectoryController<M extends Model & Did> extends
     }
     protected AbstractDirectoryController(Path path) {
         super(ensureDefaultHeaders(path));
+        loadSigner();
+        
     }
     protected M find(String name){
         return find(getModelClass(),did(name));
@@ -75,7 +77,6 @@ public abstract class AbstractDirectoryController<M extends Model & Did> extends
     @RequireLogin(false)
     @SuppressWarnings("unchecked")
     public View index(String name){
-        loadSigner();
         
         List<M> dids = findAll(getModelClass(),did(name));
         
@@ -116,7 +117,6 @@ public abstract class AbstractDirectoryController<M extends Model & Did> extends
     
     @RequireLogin(false)
     public View index(){
-        loadSigner();
         HttpMethod method = HttpMethod.valueOf(getPath().getRequest().getMethod());
         switch (method){
             case POST,PUT -> {

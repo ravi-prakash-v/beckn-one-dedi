@@ -5,6 +5,9 @@ import com.venky.core.util.ObjectUtil;
 import com.venky.swf.db.Database;
 import com.venky.swf.db.extensions.ModelOperationExtension;
 import com.venky.swf.exceptions.AccessDeniedException;
+import com.venky.swf.path.Path;
+import com.venky.swf.path._IPath;
+import com.venky.swf.routing.Config;
 import in.succinct.defs.db.model.did.subject.Subject;
 import in.succinct.defs.db.model.did.subject.VerificationMethod;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.PublicKeyType;
@@ -18,21 +21,26 @@ public class SubjectExtension extends ModelOperationExtension<Subject> {
     @Override
     protected void beforeValidate(Subject instance) {
         super.beforeValidate(instance);
-        if (instance.getModCount() == null){
-            instance.setModCount(new Bucket(0));
-        }
         if (ObjectUtil.isVoid(instance.getDid())){
-            
             instance.setDid(String.format("/subjects/%s".formatted(instance.getName())));
             Subject persisted = Database.getTable(Subject.class).getRefreshed(instance);
-            instance.getRawRecord().load(persisted.getRawRecord());
-            instance.getRawRecord().setNewRecord(persisted.getRawRecord().isNewRecord());
+            if (!persisted.getRawRecord().isNewRecord()) {
+                instance.getRawRecord().load(persisted.getRawRecord());
+            }
+            
+        }
+        if (instance.getModCount() == null){
+            instance.setModCount(new Bucket(0));
         }
         ensureControllerAccess(instance);
     
     }
     
     private void ensureControllerAccess(Subject instance) {
+        if (!instance.isDirty()){
+            return;
+        }
+        
         Subject signer = Database.getInstance().getContext(Subject.class.getName());
         
         boolean beingCreated = instance.getRawRecord().isNewRecord();
@@ -43,12 +51,15 @@ public class SubjectExtension extends ModelOperationExtension<Subject> {
                     throw new AccessDeniedException(" Unsigned request");
                 }
             }
-            if (!isPublic(instance)){
+            if ( !isPublic(instance)){
                 throw new AccessDeniedException("Unsigned request");
             }
             return;
         }
         //Signer is not null;
+        if (ObjectUtil.equals(signer.getName(), Config.instance().getHostName())){
+            return; // signed by the platform is good
+        }
         
         if (beingCreated){
             if (instance.getControllerId() == null) {
@@ -102,16 +113,23 @@ public class SubjectExtension extends ModelOperationExtension<Subject> {
         boolean controlledVerified = false;
         for (VerificationMethod vm : controller.getVerificationMethods()){
             if (vm.isVerified() && VerificationMethod.Purpose.valueOf(vm.getPurpose()) == Purpose.Assertion && VerificationMethod.PublicKeyType.valueOf(vm.getType()) == PublicKeyType.Ed25519){
-                controlledVerified = true;
-                break;
+                if (!vm.getRawRecord().isFieldDirty("VERIFIED")) {
+                    controlledVerified = true;
+                    break;
+                }
             }
         }
         return controlledVerified;
     }
     
     @Override
-    protected void afterSave(Subject instance) {
-        super.afterSave(instance);
+    protected void beforeSave(Subject instance) {
+        if (!instance.isDirty()){
+            return;
+        }
+        
+        super.beforeSave(instance);
+        ensureControllerAccess(instance);
         incrementModCount(instance);
     }
     
@@ -119,13 +137,9 @@ public class SubjectExtension extends ModelOperationExtension<Subject> {
     protected void beforeDestroy(Subject instance) {
         super.beforeDestroy(instance);
         ensureControllerAccess(instance);
-    }
-    
-    @Override
-    protected void afterDestroy(Subject instance) {
-        super.afterDestroy(instance);
         incrementModCount(instance);
     }
+    
     private void incrementModCount(Subject instance){
         if (instance.getControllerId() != null && !ObjectUtil.equals(instance.getControllerId(),instance.getId()) ){
             Subject controller = instance.getController();
