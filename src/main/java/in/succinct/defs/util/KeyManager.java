@@ -12,6 +12,7 @@ import com.venky.swf.sql.Select;
 import in.succinct.beckn.Request;
 import in.succinct.defs.db.model.did.subject.Subject;
 import in.succinct.defs.db.model.did.subject.VerificationMethod;
+import in.succinct.defs.db.model.did.subject.VerificationMethod.HashAlgorithm;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.PublicKeyType;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.Purpose;
 import org.apache.lucene.index.DocIDMerger.Sub;
@@ -91,6 +92,7 @@ public class KeyManager {
         verificationMethod.setPublicKey(key.getPublicKey());
         verificationMethod.setName("%s.%s".formatted(key.getAlias(),verificationMethod.getType()));
         verificationMethod.setControllerId(subject.getId());
+        verificationMethod.setHashingAlgorithm(HashAlgorithm.Blake512.name());
         verificationMethod.save();
         
         if (!verificationMethod.isVerified()) {

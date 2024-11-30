@@ -3,6 +3,7 @@ package in.succinct.defs.db.model.did.subject;
 import com.venky.core.security.Crypt;
 import com.venky.core.util.ObjectUtil;
 import com.venky.swf.db.table.ModelImpl;
+import in.succinct.defs.db.model.did.subject.VerificationMethod.HashAlgorithm;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.PublicKeyType;
 import in.succinct.defs.util.Challenge;
 
@@ -45,6 +46,10 @@ public class VerificationMethodImpl extends ModelImpl<VerificationMethod> {
         PublicKeyType keyType = PublicKeyType.valueOf(instance.getType());
         String response = challengeResponse;
         String expectedResponse = instance.getChallenge();
+        if (!ObjectUtil.isVoid(instance.getHashingAlgorithm())){
+            expectedResponse = Crypt.getInstance().toBase64(Crypt.getInstance().digest(HashAlgorithm.valueOf(instance.getHashingAlgorithm()).algo(),expectedResponse));
+        }
+        
         if (keyType.isChallengeEncrypted()){
             response = keyType.encrypt(response,instance.getPublicKey());
         }else if (keyType == PublicKeyType.Ed25519){
@@ -61,6 +66,7 @@ public class VerificationMethodImpl extends ModelImpl<VerificationMethod> {
         if (ObjectUtil.equals(response,expectedResponse)){
             instance.setTxnProperty("being.verified",true);
             instance.setVerified(true);
+            instance.setResponse(challengeResponse);
             if (save) {
                 instance.save();
             }

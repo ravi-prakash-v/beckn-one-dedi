@@ -5,6 +5,7 @@ import in.succinct.defs.db.model.did.subject.VerificationMethod;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.HashAlgorithm;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.PublicKeyType;
 
+import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 
 public class SignatureChallenge {
@@ -40,9 +41,12 @@ public class SignatureChallenge {
     }
     
     public boolean verify(VerificationMethod verificationMethod, String signedString, String signature){
-        PublicKeyType publicKeyType = PublicKeyType.valueOf(verificationMethod.getType());
+        return verify(verificationMethod,signedString.getBytes(StandardCharsets.UTF_8),signature);
+    }
+    public boolean verify(VerificationMethod verificationMethod, byte[] payload, String signature){
         
+        PublicKeyType publicKeyType = PublicKeyType.valueOf(verificationMethod.getType());
         PublicKey publicKey  = Crypt.getInstance().getPublicKey(publicKeyType.algo(),verificationMethod.getPublicKey());
-        return Crypt.getInstance().verifySignature(signedString,signature,publicKeyType.algo(),publicKey);
+        return Crypt.getInstance().verifySignature(payload,signature,publicKeyType.algo(),publicKey);
     }
 }

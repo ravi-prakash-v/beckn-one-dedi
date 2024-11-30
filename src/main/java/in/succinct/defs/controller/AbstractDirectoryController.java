@@ -32,6 +32,7 @@ import org.json.simple.JSONObject;
 import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -169,7 +170,7 @@ public abstract class AbstractDirectoryController<M extends Model & Did> extends
         return existing;
     }
     protected void addToIncludedModelFieldsMap(Map<Class<? extends Model>,List<String>> map, Class<? extends Model> clazz , List<String> excludedFields){
-        List<String> fields = ModelReflector.instance(clazz).getVisibleFields(List.of("ID"));
+        List<String> fields = ModelReflector.instance(clazz).getVisibleFields(new ArrayList<>());
         List<String> oldFields = getExistingModelFields(map,clazz);
         
         Map<Class<? extends Model>,List<String>> requestedFieldsMap  = getIncludedModelFieldsFromRequest();

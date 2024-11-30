@@ -8,6 +8,7 @@ import com.venky.swf.db.annotations.column.defaulting.StandardDefault;
 import com.venky.swf.db.annotations.column.validations.Enumeration;
 import com.venky.swf.db.model.CryptoKey;
 import com.venky.swf.db.model.Model;
+import in.succinct.defs.db.model.did.documents.Signature;
 import in.succinct.defs.db.model.did.identifier.Did;
 import in.succinct.defs.util.KeyManager;
 import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
@@ -16,6 +17,7 @@ import org.bouncycastle.jcajce.spec.XDHParameterSpec;
 import javax.crypto.KeyAgreement;
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
+import java.util.List;
 
 public interface VerificationMethod extends Model, Did {
     @UNIQUE_KEY("K2")
@@ -182,6 +184,8 @@ public interface VerificationMethod extends Model, Did {
         }
         
     }
+    
+    List<Signature> getSignatures();
     
     
 }

@@ -3,13 +3,19 @@ package in.succinct.defs.controller;
 import com.venky.core.string.StringUtil;
 import com.venky.core.util.ObjectUtil;
 import com.venky.swf.controller.annotations.RequireLogin;
+import com.venky.swf.db.model.Model;
 import com.venky.swf.integration.IntegrationAdaptor;
 import com.venky.swf.path.Path;
 import com.venky.swf.views.View;
+import in.succinct.defs.db.model.did.documents.Document;
+import in.succinct.defs.db.model.did.documents.Signature;
+import in.succinct.defs.db.model.did.subject.Subject;
 import in.succinct.defs.db.model.did.subject.VerificationMethod;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.PublicKeyType;
 
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 
 public class VerificationMethodsController extends AbstractDirectoryController<VerificationMethod> {
     public VerificationMethodsController(Path path) {
@@ -75,5 +81,15 @@ public class VerificationMethodsController extends AbstractDirectoryController<V
             throw new RuntimeException(ex);
         }
     }
-    
+    @Override
+    protected Map<Class<? extends Model>, List<String>> getIncludedModelFields() {
+        Map<Class<? extends Model>, List<String>> map = super.getIncludedModelFields();
+        if (getReturnIntegrationAdaptor() == null) {
+            return map;
+        }
+        addToIncludedModelFieldsMap(map, Subject.class, List.of("ID","MOD_COUNT","NAME"));
+        addToIncludedModelFieldsMap(map, VerificationMethod.class, List.of( "NAME" ));
+        
+        return map;
+    }
 }
