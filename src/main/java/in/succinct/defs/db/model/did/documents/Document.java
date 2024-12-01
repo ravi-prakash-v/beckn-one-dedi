@@ -37,6 +37,8 @@ public interface Document extends Did, Model {
     @PROTECTION(Kind.NON_EDITABLE)
     public int getStreamContentSize();
     public void setStreamContentSize(int size);
+    
+    
     List<Signature> getSignatures(); //Multiple controllers can sign the document.
     
     

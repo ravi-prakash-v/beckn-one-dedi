@@ -32,7 +32,7 @@ public class Challenge {
     }
     public String createRandomChallenge() {
         StringBuilder builder = new StringBuilder();
-        for (int i = 0 ; i< 20 ; i++){
+        for (int i = 0 ; i< 6 ; i++){
             builder.append(Randomizer.getRandomNumber((i == 0 ? 1 : 0),9));
         }
         return builder.toString();

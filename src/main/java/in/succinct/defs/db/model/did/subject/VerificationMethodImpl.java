@@ -3,6 +3,10 @@ package in.succinct.defs.db.model.did.subject;
 import com.venky.core.security.Crypt;
 import com.venky.core.util.ObjectUtil;
 import com.venky.swf.db.table.ModelImpl;
+import com.venky.swf.plugins.background.core.TaskManager;
+import com.venky.swf.plugins.collab.util.sms.SMSProviderFactory;
+import com.venky.swf.plugins.mail.core.MailerTask;
+import com.venky.swf.plugins.mail.core.SimpleMailerTask;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.HashAlgorithm;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.PublicKeyType;
 import in.succinct.defs.util.Challenge;
@@ -27,9 +31,21 @@ public class VerificationMethodImpl extends ModelImpl<VerificationMethod> {
         if (!keyType.isChallengeVerificationInFlight()){
             instance.setChallenge(challenge);
         }else {
+            if (!ObjectUtil.isVoid(instance.getChallenge())){
+                Challenge.getInstance().remove(instance.getChallenge());
+                //Remove old challenge if any
+            }
             String txnId = UUID.randomUUID().toString();
             instance.setChallenge(txnId);
             Challenge.getInstance().put(txnId,challenge);
+            if (keyType == PublicKeyType.Phone){
+                String phoneNumber = instance.getPublicKey();
+                SMSProviderFactory.getInstance().getDefaultProvider().sendOtp(phoneNumber,challenge,true);
+            }else if (keyType == PublicKeyType.Email){
+                String email = instance.getPublicKey();
+                SimpleMailerTask task = new SimpleMailerTask(email,"Your Otp Challenge",challenge);
+                TaskManager.instance().executeAsync(task,false);
+            }
         }
         instance.setVerified(false);
         if (save){

@@ -185,6 +185,7 @@ public abstract class AbstractDirectoryController<M extends Model & Did> extends
         map.put(clazz,finalFields);
     }
     
+    
     public void loadSigner() {
         String authorization = StringUtil.valueOf(getPath().getHeader("Authorization"));
         Map<String,String> params = ApplicationUtil.extractAuthorizationParams(authorization);

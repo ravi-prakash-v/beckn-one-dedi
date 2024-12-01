@@ -23,6 +23,14 @@ public class VerificationMethodsController extends AbstractDirectoryController<V
     }
     
     @RequireLogin(value = false)
+    public View challenge(String controllerKeyName){
+        String keyDid = getPath().getTarget().replace("/challenge","");
+        VerificationMethod verificationMethod = find(VerificationMethod.class,keyDid);
+        verificationMethod.challenge();
+        return IntegrationAdaptor.instance(VerificationMethod.class, getIntegrationAdaptor().getFormatClass()).createResponse(getPath(), verificationMethod);
+    }
+    
+    @RequireLogin(value = false)
     public View verify(String controllerKeyName){
         //id => https://server/controllers/controller_id#keyName
         String keyDid = getPath().getTarget().replace("/verify","");

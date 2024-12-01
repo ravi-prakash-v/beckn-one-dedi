@@ -77,6 +77,8 @@ public class VerificationMethodExtension extends ModelOperationExtension<Verific
         
     }
     
+    
+    
     @Override
     protected void beforeUpdate(VerificationMethod instance) {
         if (!instance.isDirty()){
