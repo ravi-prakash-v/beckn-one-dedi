@@ -15,7 +15,6 @@ import in.succinct.defs.db.model.did.subject.VerificationMethod;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.HashAlgorithm;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.PublicKeyType;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.Purpose;
-import org.apache.lucene.index.DocIDMerger.Sub;
 
 import java.security.KeyPair;
 import java.time.Duration;
