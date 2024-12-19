@@ -1,86 +1,200 @@
-# Decentralized File system (a succinct dedi project) 
-
-## The problem
-Entities that transact with each other often need to know details about their counter parties, learning about the credentials they posses, their reputations, etc... 
-
-These information are typically available in different systems, owned by government, non governmental organizations,social media or private organzations. 
-
-
-### DeDi 
-Decentralized directory (DeDi) is a protocol ideated within the FIDE/Finternet ecosystem. The purpose was to define a consistent way to get information from systems that processes the data. It is not necessarily related to data of transacting entities, It is a protocol  to access catagorized information from within any application. 
-e.g 
-/dns/some_domain_name (could be made available by domain registrars)
-
-/IND/tax/tax_id could be made available by tax authorities in india
-/USA/tax/tax_id could be made available by tax authorities in USA ...
-
-
-This approach is expected to reduce integration costs across the Digital economy. 
-
-## What is Did protocol and how is it releated?
-
-The Decentralized Identifiers (DIDs) defined in [this specification](https://www.w3.org/TR/did-core) are a new type of globally unique identifier. They are designed to enable individuals and organizations to generate their own identifiers using systems they trust. These new identifiers enable entities to prove control over them by authenticating using cryptographic proofs such as digital signatures. 
-
-
-## What is DeFs
-Decentralized filesystem is an generic implementation of DeDi protocol that provides information for entities identified by DIds
-
-
-### Concepts from DId
-
-1. Subject
-
-Any entity (a person, organization, thing, data model, abstract entity, etc) that is described  by a controller.
-
-2. Controller 
-
-Any entity (...) that controls or handles another subject's information. 
-e.g a secretary handing instagram account of a celebrity. 
-
-
-
-3. VerificationMethod
-
-Depending on the purpose (Authentication/Assertion.. ) a Controller can verify themselves using one of the verification methods(e.g crypto keys, otp,..) designated for the purpose 
-
-4. Service
-
-Services offered by a subject 
-
-5. Documents
-
-A Document that describes some thing about a subject
-
-for e.g Pan card is a document issued to a *company/individual* by india's tax authorities. 
-
-6. Signatures. 
-
-Cryptographic signatures are used to update subjects, issue documents, sign contracts ... 
-
-These signed updates can be verified by any one else and thus trusted if the signer is a trusted entity. 
-
-
-
-# Some implementation Details
+# Decentralized File system (a reference did implementation ) 
 
 * Onboarding a controller. 
     *   Adding a subject where controller is blank 
         /subjects (POST)
+        e.g 
+```
+        curl -H 'content-type:application/json' https://defs.humbhionline.in/subjects -d '{ "name" : "users/venkatramanm" , "verification_methods" : [{"public_key":"MCowBQYDK2VwAyEA5mMCOi\/N1qwrau6fpMjngWadEEQw\/+OjN3dbDpmzwHI=", "hashing_algorithm" :"Blake512", "purpose": "Authentication" , "type" : "Ed25519"  }] }'
 
-    *   Adding a verification method.
-        /subjects (POST)  to add a subject with one or more verification methods
-        /subjects/:subject_id (POST)  to add one or more verification methods
-        /subjects/:subject_id/verification_methods (POST) to add one or more verification methods
+```
+*   Adding a verification method.
+	/subjects (POST)  to add a subject with one or more verification methods
+	/subjects/:subject_id (POST)  to add one or more verification methods
+	/subjects/:subject_id/verification_methods (POST) to add one or more verification methods
+```
+curl -H 'content-type:application/json' https://defs.humbhionline.in/subjects/users/venkatramanm -d '{ "verification_methods" : [{"public_key":"MCowBQYDK2VuAyEAyTP1GHUfQacEKTo8AUuRFJIKr3Xy5VsMShoCnJiSFAQ=",  "purpose": "KeyAgreement" , "type" : "X25519"  }] }'
+{
+  "did" : "\/subjects\/users\/venkatramanm"
+  ,"verification_methods" : [{
+    "did" : "\/subjects\/users\/venkatramanm\/verification_methods\/4e7dc837-5273-4605-a1ca-defe07b9a52c"
+    ,"verified" : "N"
+  },{
+    "did" : "\/subjects\/users\/venkatramanm\/verification_methods\/fe2bdd08-753a-45e9-9fc7-b05e52c65fb5"
+    ,"verified" : "N"
+  }]
+}
+```
+* List Verification methods 
+```
+curl -H 'content-type:application/json' https://defs.humbhionline.in/subjects/users/venkatramanm/verification_methods
 
-    *   Verifying the method with a challenge. 
-        /subjects/:subject_id/verification_methods/verify/:verification_id POST with payload containing response to a challenge.
-            * This could be a signature 
-            * Decrypted value an encrypted challenge
+[{
+  "challenge" : "581671"
+  ,"controller" : {
+    "did" : "\/subjects\/users\/venkatramanm"
+  }
+  ,"did" : "\/subjects\/users\/venkatramanm\/verification_methods\/fe2bdd08-753a-45e9-9fc7-b05e52c65fb5"
+  ,"hashing_algorithm" : "Blake512"
+  ,"public_key" : "MCowBQYDK2VwAyEA5mMCOi\/N1qwrau6fpMjngWadEEQw\/+OjN3dbDpmzwHI="
+  ,"purpose" : "Authentication"
+  ,"type" : "Ed25519"
+  ,"verified" : "N"
+},{
+  "challenge" : "BF7EvpY\/J\/2jkOih8vGx\/w=="
+  ,"controller" : {
+    "did" : "\/subjects\/users\/venkatramanm"
+  }
+  ,"did" : "\/subjects\/users\/venkatramanm\/verification_methods\/4e7dc837-5273-4605-a1ca-defe07b9a52c"
+  ,"public_key" : "MCowBQYDK2VuAyEAyTP1GHUfQacEKTo8AUuRFJIKr3Xy5VsMShoCnJiSFAQ="
+  ,"purpose" : "KeyAgreement"
+  ,"type" : "X25519"
+  ,"verified" : "N"
+}]
+```
 
-    *   Using verified methods to update itself. 
-        * Add Documents
-        * Add Services.
-        * Add more verification methods
+*   Verifying the method with a challenge. 
+	/subjects/:subject_id/verification_methods/verify/:verification_id POST with payload containing response to a challenge.
+		* This could be a signature 
+```
+curl -H 'content-type:application/json' https://defs.humbhionline.in/subjects/users/venkatramanm/verification_methods/verify/fe2bdd08-753a-45e9-9fc7-b05e52c65fb5 -d 'ZaaQPRWveCm+vzttPsVx7cZulkGgKqum8+vyihJFwbnnlEWfnw8AFZgT40oHxyarblcoL3XpO1JJG+mTZ+8uBQ==' 
+
+
+{
+  "challenge" : "581671"
+  ,"controller" : {
+    "did" : "\/subjects\/users\/venkatramanm"
+    ,"id" : "5"
+  }
+  ,"created_at" : "2024-12-19 19:27:26"
+  ,"did" : "\/subjects\/users\/venkatramanm\/verification_methods\/fe2bdd08-753a-45e9-9fc7-b05e52c65fb5"
+  ,"hashing_algorithm" : "Blake512"
+  ,"id" : "15"
+  ,"lock_id" : "1"
+  ,"name" : "fe2bdd08-753a-45e9-9fc7-b05e52c65fb5"
+  ,"public_key" : "MCowBQYDK2VwAyEA5mMCOi\/N1qwrau6fpMjngWadEEQw\/+OjN3dbDpmzwHI="
+  ,"purpose" : "Authentication"
+  ,"response" : "ZaaQPRWveCm+vzttPsVx7cZulkGgKqum8+vyihJFwbnnlEWfnw8AFZgT40oHxyarblcoL3XpO1JJG+mTZ+8uBQ=="
+  ,"type" : "Ed25519"
+  ,"updated_at" : "2024-12-19 19:56:26"
+  ,"verified" : "Y"
+}
+
+
+
+Note: the payload is signed(hash("581671")) using the private key corresponding to the verification method
+
+```
+		* Decrypted value an encrypted challenge
+```
+curl -H 'content-type:application/json' https://defs.humbhionline.in/subjects/users/venkatramanm/verification_methods/verify/4e7dc837-5273-4605-a1ca-defe07b9a52c -d '470331' 
+
+
+{
+  "challenge" : "BF7EvpY\/J\/2jkOih8vGx\/w=="
+  ,"controller" : {
+    "did" : "\/subjects\/users\/venkatramanm"
+    ,"id" : "5"
+  }
+  ,"created_at" : "2024-12-19 20:03:14"
+  ,"did" : "\/subjects\/users\/venkatramanm\/verification_methods\/4e7dc837-5273-4605-a1ca-defe07b9a52c"
+  ,"id" : "17"
+  ,"lock_id" : "1"
+  ,"name" : "4e7dc837-5273-4605-a1ca-defe07b9a52c"
+  ,"public_key" : "MCowBQYDK2VuAyEAyTP1GHUfQacEKTo8AUuRFJIKr3Xy5VsMShoCnJiSFAQ="
+  ,"purpose" : "KeyAgreement"
+  ,"response" : "470331"
+  ,"type" : "X25519"
+  ,"updated_at" : "2024-12-19 20:14:32"
+  ,"verified" : "Y"
+}
+
+
+Note the payload is decrypt(using_create_aes_key(private_key, registry's public key ), "BF7EvpY/J/2jkOih8vGx/w==" ) To solve the challenge 
+```
+---
+
+
+```
+
+To get registry's public key: 
+------------------------------
+ curl -H 'content-type:application/json' https://defs.humbhionline.in/subjects/defs.humbhionline.in/verification_methods
+[{
+  "controller" : {
+    "did" : "\/subjects\/defs.humbhionline.in"
+  }
+  ,"did" : "\/subjects\/defs.humbhionline.in\/verification_methods\/defs.humbhionline.in.k1.X25519"
+  ,"public_key" : "MCowBQYDK2VuAyEAYYb0ufC5g8pp9UeMguwutUZoX0PpCl7BtEDTqTERTkQ="
+  ,"purpose" : "KeyAgreement"
+  ,"type" : "X25519"
+  ,"verified" : "Y"
+},{
+  "controller" : {
+    "did" : "\/subjects\/defs.humbhionline.in"
+  }
+  ,"did" : "\/subjects\/defs.humbhionline.in\/verification_methods\/defs.humbhionline.in.k1.Ed25519"
+  ,"hashing_algorithm" : "Blake512"
+  ,"public_key" : "MCowBQYDK2VwAyEABkQHXhO\/kEAnxgZiM5bFLlBSY\/Xu2HY58QpWHz5MVto="
+  ,"purpose" : "Assertion"
+  ,"type" : "Ed25519"
+  ,"verified" : "Y"
+}]
+```
+
+
+*   Using verified methods to update itself. 
+	* Add Documents
+```
+curl -H 'content-type:application/json' https://defs.humbhionline.in/subjects/users/venkatramanm -d @x.json 
+
+where x.json contents are 
+{
+	"name" :"", //Content type is derived based on the name
+	"stream" : base64(byte_stream),
+	
+}
+
+--- Signing the document manifest.png that was inserted --- 
+
+curl -H 'content-type:application/json' https://defs.humbhionline.in/subjects/users/venkatramanm/documents/manifest.png -d '{ "signatures" : [{"verification_method" : { "did" : "/subjects/users/venkatramanm/verification_methods/fe2bdd08-753a-45e9-9fc7-b05e52c65fb5"  }, "signature" :"l0XIOXQ0V5oEFUb/53nc3oGkUb4JF0Jz7iRGiTr7HmkS4nn/gTsgtiAkeZWTM4TbZkBqzL6YHeUZzctwTyKxBA=="  }] }
+
+```
+	* Add Services.
+```
+
+curl -X POST -H 'AUTHORIZATION: Signature keyId="/subjects/users/venkatramanm/verification_methods/fe2bdd08-753a-45e9-9fc7-b05e52c65fb5",algorithm="ed25519",created="1734640856",headers="(request-target) (created) digest",signature="tUCLw+/sjyGx1/NmmPzgA+FiP4C4DMrhKA1rXa/L1u2QQ0uvwcbyh0APi4ZUNp+HU8MtzIgetsomRIEV+CbrDQ=="' -H 'content-type:application/json' --data-binary @payload.json https://defs.humbhionline.in/subjects/users/venkatramanm 
+
+
+
+--payload.json--
+
+{ "services" : [{"end_point":"https://venkatramanm.abc.com/api2", "specification" : { "did" : "/subjects/users/venkatramanm/documents/manifest.png"  } }]}
+
+
+-- Response --
+{
+  "did" : "\/subjects\/users\/venkatramanm"
+  ,"documents" : [{
+    "did" : "\/subjects\/users\/venkatramanm\/documents\/manifest.png"
+    ,"signatures" : [{
+      "did" : "\/subjects\/users\/venkatramanm\/documents\/manifest.png\/signatures\/f6b29871-54e1-4f29-a9ad-f1ddcb7a0e94"
+      ,"verified" : "Y"
+    }]
+  }]
+  ,"services" : [{
+    "did" : "\/subjects\/users\/venkatramanm\/services\/5c63de81-e818-4924-8039-5054977f094e"
+  }]
+  ,"verification_methods" : [{
+    "did" : "\/subjects\/users\/venkatramanm\/verification_methods\/4e7dc837-5273-4605-a1ca-defe07b9a52c"
+    ,"verified" : "Y"
+  },{
+    "did" : "\/subjects\/users\/venkatramanm\/verification_methods\/fe2bdd08-753a-45e9-9fc7-b05e52c65fb5"
+    ,"verified" : "Y"
+  }]
+}
+
+```
 
 
 * Onboarding a subject. 

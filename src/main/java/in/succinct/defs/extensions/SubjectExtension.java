@@ -112,7 +112,7 @@ public class SubjectExtension extends ModelOperationExtension<Subject> {
         }
         boolean controlledVerified = false;
         for (VerificationMethod vm : controller.getVerificationMethods()){
-            if (vm.isVerified() && VerificationMethod.Purpose.valueOf(vm.getPurpose()) == Purpose.Assertion && VerificationMethod.PublicKeyType.valueOf(vm.getType()) == PublicKeyType.Ed25519){
+            if (vm.isVerified() && VerificationMethod.Purpose.valueOf(vm.getPurpose()) == Purpose.Authentication && VerificationMethod.PublicKeyType.valueOf(vm.getType()) == PublicKeyType.Ed25519){
                 if (!vm.getRawRecord().isFieldDirty("VERIFIED")) {
                     controlledVerified = true;
                     break;

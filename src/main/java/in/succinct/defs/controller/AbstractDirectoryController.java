@@ -202,10 +202,10 @@ public abstract class AbstractDirectoryController<M extends Model & Did> extends
         String keyDid = params.get("keyId");
         
         VerificationMethod verificationMethod = find(VerificationMethod.class,keyDid);
-        if (VerificationMethod.Purpose.valueOf(verificationMethod.getPurpose()) != Purpose.Assertion
+        if (VerificationMethod.Purpose.valueOf(verificationMethod.getPurpose()) != Purpose.Authentication
                 || !verificationMethod.isVerified()
                 || VerificationMethod.PublicKeyType.valueOf(verificationMethod.getType()) !=  PublicKeyType.Ed25519 ){
-            throw new AccessDeniedException("Only Ed25519 Assertion keys that are verified may be used for signing");
+            throw new AccessDeniedException("Only Ed25519 Authentication keys that are verified may be used for signing");
         }
         Subject controller = verificationMethod.getController();
         

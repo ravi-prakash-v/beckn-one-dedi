@@ -10,6 +10,7 @@ Welcome to Decentralized Filesystem project
    :maxdepth: 2
    :caption: Contents:
 
+   usage/beckn-one
    usage/full
 
 

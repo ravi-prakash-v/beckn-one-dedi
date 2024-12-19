@@ -17,3 +17,4 @@ src/main/resources/scripts/node_modules/
 /.gradle/
 .keystore
 /tmp/
+docs/usage/*edtz

@@ -85,20 +85,22 @@ public class KeyManager {
             verificationMethod.verify(resolved);
         }
         
-        verificationMethod = Database.getTable(VerificationMethod.class).newRecord();
-        verificationMethod.setPurpose(Purpose.Assertion.name());
-        verificationMethod.setType(PublicKeyType.Ed25519.name());
-        verificationMethod.setPublicKey(key.getPublicKey());
-        verificationMethod.setName("%s.%s".formatted(key.getAlias(),verificationMethod.getType()));
-        verificationMethod.setControllerId(subject.getId());
-        verificationMethod.setHashingAlgorithm(HashAlgorithm.Blake512.name());
-        verificationMethod.save();
-        
-        if (!verificationMethod.isVerified()) {
-            String resolved =
-                    Crypt.getInstance().generateSignature(verificationMethod.getChallenge(),PublicKeyType.Ed25519.algo(),
-                        Crypt.getInstance().getPrivateKey(PublicKeyType.Ed25519.algo(), KeyManager.getInstance().getLatestKey(CryptoKey.PURPOSE_SIGNING).getPrivateKey()));
-            verificationMethod.verify(resolved);
+        for (Purpose purpose : new Purpose[]{Purpose.Authentication,Purpose.Assertion}) {
+            verificationMethod = Database.getTable(VerificationMethod.class).newRecord();
+            verificationMethod.setPurpose(purpose.name());
+            verificationMethod.setType(PublicKeyType.Ed25519.name());
+            verificationMethod.setPublicKey(key.getPublicKey());
+            verificationMethod.setName("%s.%s.%s".formatted(key.getAlias(), verificationMethod.getType(),verificationMethod.getPurpose()));
+            verificationMethod.setControllerId(subject.getId());
+            verificationMethod.setHashingAlgorithm(HashAlgorithm.Blake512.name());
+            verificationMethod.save();
+            
+            if (!verificationMethod.isVerified()) {
+                String resolved =
+                        Crypt.getInstance().generateSignature(verificationMethod.getChallenge(), PublicKeyType.Ed25519.algo(),
+                                Crypt.getInstance().getPrivateKey(PublicKeyType.Ed25519.algo(), KeyManager.getInstance().getLatestKey(CryptoKey.PURPOSE_SIGNING).getPrivateKey()));
+                verificationMethod.verify(resolved);
+            }
         }
         
         
