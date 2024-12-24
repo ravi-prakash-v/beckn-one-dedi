@@ -143,13 +143,13 @@ public abstract class AbstractDirectoryController<M extends Model & Did> extends
         
     }
     
-    private View respond(M model){
+    protected View respond(M model){
         return getIntegrationAdaptor().
                 createResponse(getPath(),model,
                 getIncludedFields() == null ? null : Arrays.asList(getIncludedFields()),
                 getIgnoredParentModels(),  getIncludedModelFields());
     }
-    public View respond(List<M> models){
+    protected View respond(List<M> models){
         return getIntegrationAdaptor().
                 createResponse(getPath(),models,
                         getIncludedFields() == null ? null : Arrays.asList(getIncludedFields()),

@@ -42,7 +42,7 @@ public class VerificationMethodsController extends AbstractDirectoryController<V
         }
         String response = getResponse(verificationMethod);
         verificationMethod.verify(response);
-        return IntegrationAdaptor.instance(VerificationMethod.class, getIntegrationAdaptor().getFormatClass()).createResponse(getPath(), verificationMethod);
+        return respond(verificationMethod);
     }
     
     protected String getResponse(VerificationMethod verificationMethod) {

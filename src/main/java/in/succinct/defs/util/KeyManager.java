@@ -2,6 +2,7 @@ package in.succinct.defs.util;
 
 import com.venky.core.date.DateUtils;
 import com.venky.core.security.Crypt;
+import com.venky.core.util.ObjectUtil;
 import com.venky.swf.db.Database;
 import com.venky.swf.db.model.CryptoKey;
 import com.venky.swf.db.model.reflection.ModelReflector;
@@ -71,6 +72,7 @@ public class KeyManager {
         Subject subject  = Database.getTable(Subject.class).newRecord();
         subject.setName(Config.instance().getHostName());
         subject.save();
+        Database.getInstance().setContext(Subject.class.getName(),subject);
         
         VerificationMethod verificationMethod = Database.getTable(VerificationMethod.class).newRecord();
         verificationMethod.setPurpose(Purpose.KeyAgreement.name());
@@ -93,11 +95,17 @@ public class KeyManager {
             verificationMethod.setName("%s.%s.%s".formatted(key.getAlias(), verificationMethod.getType(),verificationMethod.getPurpose()));
             verificationMethod.setControllerId(subject.getId());
             verificationMethod.setHashingAlgorithm(HashAlgorithm.Blake512.name());
+            verificationMethod = Database.getTable(VerificationMethod.class).getRefreshed(verificationMethod);
             verificationMethod.save();
             
             if (!verificationMethod.isVerified()) {
+                String challenge = verificationMethod.getChallenge();
+                if (!ObjectUtil.isVoid(verificationMethod.getHashingAlgorithm())){
+                    challenge = Crypt.getInstance().toBase64(Crypt.getInstance().digest(HashAlgorithm.valueOf(verificationMethod.getHashingAlgorithm()).algo(),challenge));
+                }
+                
                 String resolved =
-                        Crypt.getInstance().generateSignature(verificationMethod.getChallenge(), PublicKeyType.Ed25519.algo(),
+                        Crypt.getInstance().generateSignature(challenge, PublicKeyType.Ed25519.algo(),
                                 Crypt.getInstance().getPrivateKey(PublicKeyType.Ed25519.algo(), KeyManager.getInstance().getLatestKey(CryptoKey.PURPOSE_SIGNING).getPrivateKey()));
                 verificationMethod.verify(resolved);
             }

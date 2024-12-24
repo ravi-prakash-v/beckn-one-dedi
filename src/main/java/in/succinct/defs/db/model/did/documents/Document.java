@@ -18,12 +18,14 @@ public interface Document extends Did, Model {
     Subject getSubject();
     
     @IS_NULLABLE(value = false)
+    @HIDDEN
     public InputStream getStream();
     public void setStream(InputStream is);
     
     @PROTECTION(Kind.NON_EDITABLE)
     @IS_NULLABLE(value = false)
     @COLUMN_NAME("NAME")
+    @HIDDEN
     public String getStreamContentName();
     public void setStreamContentName(String name);
     
