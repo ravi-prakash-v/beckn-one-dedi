@@ -17,6 +17,8 @@ public interface Document extends Did, Model {
     void setSubjectId(Long id);
     Subject getSubject();
     
+    
+    
     @IS_NULLABLE(value = false)
     @HIDDEN
     public InputStream getStream();
@@ -41,7 +43,7 @@ public interface Document extends Did, Model {
     public void setStreamContentSize(int size);
     
     
-    List<Signature> getSignatures(); //Multiple controllers can sign the document.
+    List<Attestation> getAttestations(); //Multiple controllers can sign the document.
     
     
 }

@@ -1,22 +1,14 @@
 package in.succinct.defs.controller;
 
-import com.venky.core.security.Crypt;
-import com.venky.core.string.StringUtil;
-import com.venky.core.util.ObjectUtil;
 import com.venky.swf.db.model.Model;
-import com.venky.swf.db.model.application.ApplicationUtil;
 import com.venky.swf.db.model.reflection.ModelReflector;
-import com.venky.swf.exceptions.AccessDeniedException;
 import com.venky.swf.path.Path;
 import in.succinct.defs.db.model.did.documents.Document;
-import in.succinct.defs.db.model.did.documents.Signature;
+import in.succinct.defs.db.model.did.documents.Attestation;
 import in.succinct.defs.db.model.did.subject.Service;
 import in.succinct.defs.db.model.did.subject.Subject;
 import in.succinct.defs.db.model.did.subject.VerificationMethod;
-import in.succinct.defs.db.model.did.subject.VerificationMethod.Purpose;
-import in.succinct.defs.util.SignatureChallenge;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
@@ -40,9 +32,9 @@ public class SubjectsController extends AbstractDirectoryController<Subject> {
         excluded.remove("DID");
         addToIncludedModelFieldsMap(map,Subject.class,excluded);
         
-        excluded = ModelReflector.instance(Signature.class).getFields();
+        excluded = ModelReflector.instance(Attestation.class).getFields();
         excluded.removeAll(List.of("DID","VERIFIED"));
-        addToIncludedModelFieldsMap(map, Signature.class, excluded);
+        addToIncludedModelFieldsMap(map, Attestation.class, excluded);
         
         excluded = ModelReflector.instance(Service.class).getFields();
         excluded.remove("DID");

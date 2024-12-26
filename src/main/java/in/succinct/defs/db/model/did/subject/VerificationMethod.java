@@ -1,15 +1,13 @@
 package in.succinct.defs.db.model.did.subject;
 
 import com.venky.core.security.Crypt;
-import com.venky.swf.db.annotations.column.COLUMN_DEF;
 import com.venky.swf.db.annotations.column.IS_NULLABLE;
 import com.venky.swf.db.annotations.column.UNIQUE_KEY;
-import com.venky.swf.db.annotations.column.defaulting.StandardDefault;
 import com.venky.swf.db.annotations.column.ui.HIDDEN;
 import com.venky.swf.db.annotations.column.validations.Enumeration;
 import com.venky.swf.db.model.CryptoKey;
 import com.venky.swf.db.model.Model;
-import in.succinct.defs.db.model.did.documents.Signature;
+import in.succinct.defs.db.model.did.documents.Attestation;
 import in.succinct.defs.db.model.did.identifier.Did;
 import in.succinct.defs.util.KeyManager;
 import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
@@ -187,7 +185,7 @@ public interface VerificationMethod extends Model, Did {
     }
     
     @HIDDEN
-    List<Signature> getSignatures();
+    List<Attestation> getSignatures();
     
     
 }

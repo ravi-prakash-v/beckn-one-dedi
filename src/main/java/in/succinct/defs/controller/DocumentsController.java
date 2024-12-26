@@ -1,21 +1,15 @@
 package in.succinct.defs.controller;
 
-import com.venky.core.io.ByteArrayInputStream;
 import com.venky.core.string.StringUtil;
-import com.venky.swf.db.annotations.column.ui.mimes.MimeType;
 import com.venky.swf.db.model.Model;
 import com.venky.swf.db.model.reflection.ModelReflector;
 import com.venky.swf.path.Path;
 import com.venky.swf.views.BytesView;
 import com.venky.swf.views.View;
 import in.succinct.defs.db.model.did.documents.Document;
-import in.succinct.defs.db.model.did.documents.Signature;
-import in.succinct.defs.db.model.did.fs.Directory;
-import in.succinct.defs.db.model.did.subject.Subject;
+import in.succinct.defs.db.model.did.documents.Attestation;
 import in.succinct.defs.db.model.did.subject.VerificationMethod;
 
-import javax.print.DocFlavor.STRING;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +19,7 @@ public class DocumentsController extends AbstractDirectoryController<Document> {
     }
     
     @Override
-    protected String did(String name) {
+    protected String did() {
         return String.format("%s",
                 getPath().getTarget().replaceAll("/stream$","")); // Target includes name
         
@@ -54,9 +48,9 @@ public class DocumentsController extends AbstractDirectoryController<Document> {
         
         addToIncludedModelFieldsMap(map, Document.class, List.of("SUBJECT_ID" ,"NAME" ));
         
-        excluded = ModelReflector.instance(Signature.class).getFields();
-        excluded.removeAll(List.of("SIGNATURE","VERIFIED" , "VERIFICATION_METHOD_ID"));
-        addToIncludedModelFieldsMap(map, Signature.class, excluded);
+        excluded = ModelReflector.instance(Attestation.class).getFields();
+        excluded.removeAll(List.of("SIGNATURE","VERIFIED" , "VERIFICATION_METHOD_ID", "DID"));
+        addToIncludedModelFieldsMap(map, Attestation.class, excluded);
         
         
         excluded = ModelReflector.instance(VerificationMethod.class).getFields();

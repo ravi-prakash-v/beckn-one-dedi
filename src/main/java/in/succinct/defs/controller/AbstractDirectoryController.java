@@ -1,5 +1,6 @@
 package in.succinct.defs.controller;
 
+import com.venky.cache.Cache;
 import com.venky.core.collections.SequenceSet;
 import com.venky.core.security.Crypt;
 import com.venky.core.string.StringUtil;
@@ -14,7 +15,9 @@ import com.venky.swf.db.model.io.ModelReader;
 import com.venky.swf.db.model.reflection.ModelReflector;
 import com.venky.swf.exceptions.AccessDeniedException;
 import com.venky.swf.integration.api.HttpMethod;
+import com.venky.swf.path.ControllerCache;
 import com.venky.swf.path.Path;
+import com.venky.swf.path.Path.ControllerInfo;
 import com.venky.swf.routing.Config;
 import com.venky.swf.sql.Expression;
 import com.venky.swf.sql.Operator;
@@ -26,16 +29,26 @@ import in.succinct.defs.db.model.did.subject.VerificationMethod;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.PublicKeyType;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.Purpose;
 import in.succinct.defs.util.SignatureChallenge;
+import in.succinct.json.JSONAwareWrapper;
 import in.succinct.json.JSONObjectWrapper;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONAware;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 import javax.xml.crypto.Data;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
 
 public abstract class AbstractDirectoryController<M extends Model & Did> extends ModelController<M> {
     
@@ -46,40 +59,96 @@ public abstract class AbstractDirectoryController<M extends Model & Did> extends
     }
     
     
-    public static Path ensureDefaultHeaders(Path path){
-        path.getHeaders().put("Content-Type","application/json");
+    public static Path ensureDefaultHeaders(Path path) {
+        path.getHeaders().put("Content-Type", "application/json");
         return path;
     }
+    
     protected AbstractDirectoryController(Path path) {
         super(ensureDefaultHeaders(path));
         loadSigner();
         
     }
-    protected M find(String name){
-        return find(getModelClass(),did(name));
+    
+    protected M find() {
+        return find(getModelClass(), did());
     }
-    protected  String did(String name){
+    
+    protected String did() {
         return String.format("%s",
                 getPath().getTarget()); // Target includes name
     }
-    protected <D extends Model & Did> D find(Class<D> clazz, String did){
+    
+    protected <D extends Model & Did> D find(Class<D> clazz, String did) {
         D aDid = Database.getTable(clazz).newRecord();
         aDid.setDid(did);
         return Database.getTable(clazz).getRefreshed(aDid);
     }
-    protected <D extends Model & Did> List<D> findAll(Class<D> clazz, String did){
+    
+    protected <D extends Model & Did> List<D> findAll(Class<D> clazz, String did) {
         Select select = new Select().from(getModelClass());
-        select.where(new Expression(select.getPool(),"DID", Operator.LK,
+        select.where(new Expression(select.getPool(), "DID", Operator.LK,
                 "%s%%".formatted(did)));
         return select.execute();
     }
     
+    public void fillDefaults(JSONObject in) {
+        List<ControllerInfo> elements = new LinkedList<>(getPath().getControllerElements());
+        elements.removeLast(); // Current model
+        
+        JSONObject object = in;
+        if (object.containsKey(getModelClass().getSimpleName())){
+            object = (JSONObject) in.get(getModelClass().getSimpleName());
+        }
+        
+        StringBuilder did = new StringBuilder();
+        ModelReflector<M> ref = getReflector();
+        List<Method> methods = ref.getReferredModelGetters();
+        Map<String,List<String>> modelReferencesMap = new Cache<String, List<String>>() {
+            @Override
+            protected List<String> getValue(String s) {
+                return new ArrayList<>();
+            }
+        };
+        for (Method method : methods) {
+            modelReferencesMap.get(method.getReturnType().getSimpleName()).add(method.getName().substring(3));
+        }
+    
+        for (ControllerInfo e :elements){
+            Class<? extends Model> possibleParent = e.getModelClass();
+            if (Did.class.isAssignableFrom(possibleParent)){
+                did.append("/").append(e.getControllerName());
+                if (!ObjectUtil.equals(e.getAction(),"index")){
+                    did.append("/").append(e.getAction());
+                }
+                if (!ObjectUtil.isVoid(e.getParameter())){
+                    did.append("/").append(StringUtil.valueOf(e.getParameter()));
+                }
+                List<String> modelReferences = modelReferencesMap.get(possibleParent.getSimpleName());
+                if (modelReferences.size() == 1){
+                    object.put(modelReferences.get(0),new JSONObject(){{
+                        put("Did",did.toString());
+                    }});
+                }
+            }
+        }
+        
+    }
+    
+    public M read(JSONObject object){
+        ModelReader<M,JSONObject> reader = ModelIOFactory.getReader(getModelClass(),JSONObject.class);
+        return read(reader,object);
+    }
+    public M read(ModelReader<M,JSONObject> reader, JSONObject object){
+        fillDefaults(object);
+        return reader.read(object,true);
+    }
     
     @RequireLogin(false)
     @SuppressWarnings("unchecked")
     public View index(String name){
         
-        List<M> dids = findAll(getModelClass(),did(name));
+        List<M> dids = findAll(getModelClass(),did());
         
         HttpMethod method = HttpMethod.valueOf(getPath().getRequest().getMethod());
         switch (method){
@@ -88,10 +157,8 @@ public abstract class AbstractDirectoryController<M extends Model & Did> extends
                     if (dids.size() == 1){
                         InputStream is = getPath().getInputStream();
                         JSONObject object = JSONObjectWrapper.parse(is);
-                        object.put("Did",did(name));
-                        ModelReader<M,JSONObject> reader = ModelIOFactory.getReader(getModelClass(),JSONObject.class);
-                        M aDid = reader.read(object,true);
-                        return respond(aDid);
+                        object.put("Did",did());
+                        return respond(read(object));
                     }else {
                         throw new RuntimeException("Incomplete did " + name);
                     }
@@ -121,8 +188,21 @@ public abstract class AbstractDirectoryController<M extends Model & Did> extends
         HttpMethod method = HttpMethod.valueOf(getPath().getRequest().getMethod());
         switch (method){
             case POST,PUT -> {
-                List<M> dids = getIntegrationAdaptor().readRequest(getPath(),true);
-                return respond(dids);
+                try {
+                    JSONAware jsonAware = JSONObjectWrapper.parse(getPath().getInputStream());
+                    List<M> dids = new ArrayList<>();
+                    ModelReader<M,JSONObject> reader = ModelIOFactory.getReader(getModelClass(),JSONObject.class);
+                    if (jsonAware instanceof JSONArray){
+                        for (Object object : (JSONArray)jsonAware){
+                            dids.add(read(reader,(JSONObject) object));
+                        }
+                    }else {
+                        dids.add(read(reader,(JSONObject) jsonAware));
+                    }
+                    return respond(dids);
+                }catch (Exception ex){
+                    throw new RuntimeException(ex);
+                }
             }
             case GET -> {
                 Select select = new Select().from(getModelClass());

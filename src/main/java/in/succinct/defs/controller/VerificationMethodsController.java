@@ -7,8 +7,6 @@ import com.venky.swf.db.model.Model;
 import com.venky.swf.integration.IntegrationAdaptor;
 import com.venky.swf.path.Path;
 import com.venky.swf.views.View;
-import in.succinct.defs.db.model.did.documents.Document;
-import in.succinct.defs.db.model.did.documents.Signature;
 import in.succinct.defs.db.model.did.subject.Subject;
 import in.succinct.defs.db.model.did.subject.VerificationMethod;
 import in.succinct.defs.db.model.did.subject.VerificationMethod.PublicKeyType;
