@@ -1,30 +1,32 @@
-# Introduction 
-FIDE is a not-for-profit organization that fosters innovation and co-creation among ecosystem participants, by building interoperable open protocol specifications as a public good. 
+# Beckn-One
+## TL;DR
+Beckn-One is an ambitious community project by Beckn Open Collective that aims to create a global decentralized transaction network based on open interoperable protocols. All parties that need to be part of a  commercial transaction, can make use of these network protocols and collaborate digitally. 
+This network has taken inspirations form several protocol based open networks we already use. For e.g. internet, mail, ftp, telephony.
 
-Some of these specifications include: 
-1. Beckn Transaction specification. 
-2. Registry specification
-3. Decentralized Directory specification.
-4. Gateway specification.
-5. Issue and Grievance specification,
-6. Payments and Settlement specification. 
-7. Reputation specification.
+## Terminology
+> TODO: Need a Terminology Section
 
+## Context 
+Open networks like ONDC, ONEST, UEI, and UHI, etc although federated, operate as a closed system managing platform authentication and onboarding. This is done via a governing body or organization called the **Network Facilitator Organization (NFO)** within each network that determines “who” gets to participate and who doesn’t. This is done via complicated onboarding practices that differ across regions, domains, leading to inefficiencies and potential delays. These processes are not intentional but emerge as a result of several factors like trust deficiencies between platforms, lack of awareness domain and region-specific policies, legacy platform mindsets, etc. 
 
-Beckn One is an ambitious project that aims to create a global decentralized transaction network based on open interoperable protocols. All parties that need to be part of a  commercial transaction, can make use of these network protocols and collaborate digitally. 
-This network has taken inspirations form several protocol based open networks we already use. For e.g. internet, mail, ftp, telephony.. 
+## Problem
+How do we create a single global network of Beckn Protocol nodes that allow any two entities to transact with each other in a trusted manner without the need of a centralized trust infrastructure
 
-# The Registrars. 
-Registrars are a crucial pillar in the beckn one ecosystem. They are entities who provide 
-[[#Registry Services]] to entities (individuals and companies) who would like to participate in commercial transactions over beckn-one. These are similar to a network provider in the telephony network.
+## Forces
+> TODO: Forces in the problem that may constrain the solution
 
-## Registry Services
-These are application platforms that are compliant with the [Registry specifications](https://github.com/beckn/protocol-specifications/blob/master/api/registry/build/registry.yaml)
-Registrars who  provide these services, can get their platforms additionally certified by FIDE Certified Certification Agencies who can test the platform for compliance and issue certificate of compliance. Automated tests may be published by the Beckn One ecosystem volunteers from time to time and Registrars can run these tests and self certify their platform's compliance. External certification agencies (testing agencies) may also run these tests and certify a registration service.
+## Solution
 
+### Actors
+#### Registrars. 
+Registrars are a crucial entity in the beckn one ecosystem. They are entities who provide [[#Registration Services]] to entities (individuals and companies) who would like to participate in commercial transactions over beckn-one. These are similar to a network provider in the telephony network.
 
-## Registry specification considerations
-1. Every entity on beckn-one should be able to  self generate a decentralized id (DiD for short) which can be registered with any of the registrars (list maintained in Fide github possibly or a registry hosted by FIDE). 
+#### Registries
+These are platforms that are compliant with the [Registry specifications](https://github.com/beckn/protocol-specifications/blob/master/api/registry/build/registry.yaml)
+Registrars who  provide these services, can get their platforms additionally certified by  Beckn Certification Agencies who can test the platform for compliance and issue a certificate of compliance. Automated tests may be published by the Beckn-one ecosystem volunteers from time to time. Registrars can run these tests and self-certify their platform's compliance. External certification agencies (testing agencies) may also run these tests and certify a registration service.
+
+## Functional Requirements
+1. Any entity should be able to  self generate a Decentralized Identifier (DiD for short) which can be registered with any of the registrars (list maintained on Beckn GitHub)
 2. Entities can register their DiD on one of the compliant registrars. 
 	1. The following artifact(s) would be mandatory during registration.
 		1. A Cryptographic Public Signing Key (Ed25519), that would be used to verify the ownership of the DiD.
@@ -35,10 +37,10 @@ Registrars who  provide these services, can get their platforms additionally cer
 	2. Email  For communication
 	3. Phone for communication
 	4. Domain name to host services. 
-*These meta information can be verified by the registrar by any of the prescribed method in the specification . (e.g phone and email by otp , domain name with a DNS TXT record, Signing keys with a signing challenge and Encryption keys with an encryption challenge )*
+*This meta information can be verified by the registrar by any of the prescribed method in the specification. (e.g phone and email by otp , domain name with a DNS TXT record, Signing keys with a signing challenge and Encryption keys with an encryption challenge )*
 
 4. Entities can publish self signed documents  about themselves with their registrar 
-5. Entities can publish signed documents about others, registered with other registrars with their registrar. (Issuing a credential)
+5. Entities can publish signed documents of _other_ entities, registered with other registrars with their registrar. (Issuing a credential)
 7. Entities registered with one registrar can sign any document hosted in another registry with their personal Signing Key. ( This is useful in contract signing )
 8. Entities can publish, services hosted by them on their verified domains. Service specification documents can be either published by self or could be one of the specifications published by Others (like FIDE or similar organizations)
 
@@ -49,7 +51,6 @@ https://registry_service_base_url/subjects/:subject_id
 Usually subject Id is either a domain name owned by a subject, a phone number , email or some random uuid. 
 If a subject moves across registry service, it can port its /subjects/:subject_id from https://registry_service_base_url/ to https://another_registry_service_base_url/
 
-
 ### A Subject's verification methods
 https://registry_service_base_url/subjects/:subject_id/verification_methods
 
@@ -58,7 +59,6 @@ https://registry_service_base_url/subjects/:subject_id/verification_methods/:met
 
 ### Documents published on a subject
 https://registry_service_base_url/subjects/:subject_id/documents
-
 
 ### A Document detail
 https://registry_service_base_url/subjects/:subject_id/documents/:document_id
