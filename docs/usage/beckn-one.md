@@ -1,21 +1,35 @@
 # Beckn-One
 ## TL;DR
-Beckn-One is an ambitious community project by Beckn Open Collective that aims to create a global decentralized transaction network based on open interoperable protocols. All parties that need to be part of a  commercial transaction, can make use of these network protocols and collaborate digitally. 
+Beckn-One is an ambitious community project by Beckn Open Collective that aims to create a single global decentralized transaction network based on open interoperable protocols as opposed to multiple semi-siloed beckn-enabled networks that exist today. 
+
+All parties that need to be part of a  commercial transaction, can make use of these network protocols and collaborate digitally. 
 This network has taken inspirations form several protocol based open networks we already use. For e.g. internet, mail, ftp, telephony.
 
 ## Terminology
 > TODO: Need a Terminology Section
 
 ## Context 
-Open networks like ONDC, ONEST, UEI, and UHI, etc although federated, operate as a closed system managing platform authentication and onboarding. This is done via a governing body or organization called the **Network Facilitator Organization (NFO)** within each network that determines “who” gets to participate and who doesn’t. This is done via complicated onboarding practices that differ across regions, domains, leading to inefficiencies and potential delays. These processes are not intentional but emerge as a result of several factors like trust deficiencies between platforms, lack of awareness domain and region-specific policies, legacy platform mindsets, etc. 
+Open networks like ONDC, ONEST, UEI, and UHI, etc although federated, operate as a closed system managing platform authentication and onboarding. This is done via a governing body or organization called the **Network Facilitator Organization (NFO)** that determines “who” gets to participate and who doesn’t. This is done via various onboarding processes that differ across regions, domains. Such processes lead to inefficiencies and potential delays in adoption. These processes are not intentional but emerge as a result of several factors like trust deficiencies between platforms, lack of awareness domain and region-specific policies, legacy platform mindsets, etc. 
 
-## Problem
-How do we create a single global network of Beckn Protocol nodes that allow any two entities to transact with each other in a trusted manner without the need of a centralized trust infrastructure
+## Problem Articulation
+Beckn protocol is already a peer-to-peer protocol for transactions. The issue isn't transactions but in establishment of trust between the transacting parties before and during a transaction. Let's understand this using a simple use case. 
+
+Adam lives in Bangalore, India and wants to buy 1000 drones for his company XFlight. Lisa is a seller in Shenzen, China who owns a drone manufacturing company - Quad Engineering. Adam and Lisa don't know about each other. Adam uses Open Commerce, a Beckn-enabled app which is registered on the ONDC registry. Lisa has published her catalog on Acme, another Beckn-enabled seller platform on Open Schenzen Network. Both ONDC and Open Schenzen Network have onboarded Open Commerce and Acme on their registries using their respective onboarding process.
+
+Adam, opens the Open Commerce app and searches for Drones. He sees a small list of drone products that are being sold by some importers. Adam realizes that not too many sellers on ONDC sell drones. Furthermore, Lisa's company - Quad Engineering doesn't even show up on Adam's app - Open Commerce, during search; simply because, Acme, (Lisa's app) is not 
+_registered_ on the ONDC registry. Similarly, Adam's platform, Open Commerce isn't registered on the Open Schenzen Network registry.
+
+Adam discovers Quad Engineering using a Google Search and opens their website. Upon opening the website, he sees an old-school website that doesn't instill any trust on the manufacturer - Lisa. He sees very few reviews on Google, since Google has limited operations in China. He calls up Quad Engineering and has a conversation with a sales executive. Due to a language barrier, he isn't able to trust the executive. The same happens on the other side. The sales executive doesn't know whether to trust Adam. She mentions that a payment of 40,000 USD must be made upfront to place the order. Adam is worried that he may not receive the shipment as he doesn't trust the company. 
+
+Frustrated, 
+
+How do we enable creation of a single global network of Beckn Protocol nodes  (like the internet) that allow any two entities to discover and transact with each other in a trusted manner without the need of complicated onboarding processes and centralized trust authorities? 
 
 ## Forces
 > TODO: Forces in the problem that may constrain the solution
 
 ## Solution
+
 
 ### Actors
 #### Registrars. 
